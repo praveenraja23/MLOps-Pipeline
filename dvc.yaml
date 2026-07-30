@@ -1,0 +1,31 @@
+stages:
+  generate_data:
+    cmd: python -m src.components.data_ingestion
+    deps:
+      - src/components/data_ingestion.py
+    params:
+      - data_ingestion.n_synthetic_samples
+      - data_ingestion.train_test_split_ratio
+    outs:
+      - data/raw/churn_data.csv
+
+  train:
+    cmd: python -m src.pipeline.training_pipeline
+    deps:
+      - data/raw/churn_data.csv
+      - configs/schema.yaml
+      - src/components/data_validation.py
+      - src/components/data_transformation.py
+      - src/components/model_trainer.py
+      - src/components/model_evaluation.py
+      - src/components/model_pusher.py
+      - src/pipeline/training_pipeline.py
+    params:
+      - model_trainer.optuna_trials
+      - model_trainer.cv_folds
+      - model_trainer.expected_min_score
+      - model_evaluation.accept_threshold_delta
+    outs:
+      - models/production:
+          cache: false
+          persist: true # don't wipe this between runs — model_evaluation compares against what's already here

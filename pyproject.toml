@@ -1,0 +1,18 @@
+[project]
+name = "churn-prediction-mlops"
+version = "1.0.0"
+description = "Production-ready end-to-end MLOps pipeline for customer churn prediction"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+markers = [
+    "integration: marks slower end-to-end integration tests",
+]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"

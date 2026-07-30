@@ -1,0 +1,90 @@
+# Docker Compose for the churn prediction MLOps stack.
+#
+# Services:
+#   api          — FastAPI prediction service
+#   mongodb      — Document store for predictions, experiments, logs
+#   prometheus   — Metrics collection
+#   grafana      — Metrics visualization
+#
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f api
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: churn-api
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGODB_DATABASE_NAME=mlops_pipeline
+      - DATA_SOURCE=synthetic
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./mlflow.db:/app/mlflow.db
+    depends_on:
+      mongodb:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7
+    container_name: churn-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.53
+    container_name: churn-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1
+    container_name: churn-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  prometheus_data:
+  grafana_data:

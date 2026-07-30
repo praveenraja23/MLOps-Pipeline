@@ -1,0 +1,11 @@
+data_ingestion:
+  train_test_split_ratio: 0.2
+  n_synthetic_samples: 5000
+
+model_trainer:
+  optuna_trials: 25
+  cv_folds: 5
+  expected_min_score: 0.55
+
+model_evaluation:
+  accept_threshold_delta: 0.02

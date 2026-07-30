@@ -1,0 +1,65 @@
+schema: '2.0'
+stages:
+  generate_data:
+    cmd: python -m src.components.data_ingestion
+    deps:
+    - path: src/components/data_ingestion.py
+      hash: md5
+      md5: 0483653893a7c8503ee008a6f1cf57ac
+      size: 10960
+    params:
+      params.yaml:
+        data_ingestion.n_synthetic_samples: 5000
+        data_ingestion.train_test_split_ratio: 0.2
+    outs:
+    - path: data/raw/churn_data.csv
+      hash: md5
+      md5: 8bde3fe4888ba130f4cf5e7b4489597a
+      size: 693046
+  train:
+    cmd: python -m src.pipeline.training_pipeline
+    deps:
+    - path: configs/schema.yaml
+      hash: md5
+      md5: b24763fcf9561e2f378295dd823fe418
+      size: 904
+    - path: data/raw/churn_data.csv
+      hash: md5
+      md5: 8bde3fe4888ba130f4cf5e7b4489597a
+      size: 693046
+    - path: src/components/data_transformation.py
+      hash: md5
+      md5: 47279a110a07c53ae3eb8b8f77efba77
+      size: 5598
+    - path: src/components/data_validation.py
+      hash: md5
+      md5: bec2a93880602c5b11e6c13341f53eea
+      size: 5575
+    - path: src/components/model_evaluation.py
+      hash: md5
+      md5: 25c421c4ac674673c9ed8aaccd11e77e
+      size: 4243
+    - path: src/components/model_pusher.py
+      hash: md5
+      md5: 7afe8bd6fe98d4152f0fea8494596850
+      size: 3759
+    - path: src/components/model_trainer.py
+      hash: md5
+      md5: e11e184d0ddb4fbc7d42c9d41998ca2a
+      size: 10345
+    - path: src/pipeline/training_pipeline.py
+      hash: md5
+      md5: e8e73fdc56bf4906166ae8f37f5c2eaa
+      size: 2978
+    params:
+      params.yaml:
+        model_evaluation.accept_threshold_delta: 0.02
+        model_trainer.cv_folds: 5
+        model_trainer.expected_min_score: 0.55
+        model_trainer.optuna_trials: 25
+    outs:
+    - path: models/production
+      hash: md5
+      md5: 42fea4cda908c4b8db58f877f67135b6.dir
+      size: 9973
+      nfiles: 3
