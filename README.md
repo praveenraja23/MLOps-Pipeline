@@ -7,8 +7,6 @@
 
 An end-to-end MLOps pipeline for customer churn prediction: data ingestion through validation, feature engineering, multi-model training with hyperparameter tuning, experiment tracking, a model registry, and data drift monitoring — built with the same tooling used in production ML teams (MLflow, DVC, Optuna) rather than a notebook-only demo.
 
-Built by [Heaven](https://github.com/) as a placement-portfolio project.
-
 ## Why churn prediction
 
 The spec this was built from asked for feature engineering that includes outlier handling and heavy categorical encoding. Churn is the cleanest fit for that: 15 categorical columns, a real class balance question, and no conceptual conflict — fraud detection would actually fight with generic outlier removal, since fraud cases *are* the outliers you want to keep.
